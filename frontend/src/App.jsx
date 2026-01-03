@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 import { Toaster, toast } from 'react-hot-toast';
-import OverviewGraph from "./OverviewGraph";
+import { StudentDashboard, TeacherDashboard, AdminDashboard } from "./DashboardWidgets";
 
 const ROLES = {
   SUPER_ADMIN: "super_admin",
@@ -403,42 +403,83 @@ const DataTable = ({ items, cols, empty }) => {
 
 function useBackend() {
   // Minimal client helpers to call backend
-  const addFaculty = async (payload) => {
-    const res = await fetch('/api/admin/faculty', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    return res.json();
-  };
-  const listFaculty = async () => (await fetch('/api/admin/faculty')).json();
-  const addStudent = async (payload) => (await fetch('/api/admin/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
-  const listStudents = async () => (await fetch('/api/admin/students')).json();
-  const addAdmin = async (payload) => (await fetch('/api/admin/admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
-  const listAdmins = async () => (await fetch('/api/admin/admins')).json();
-  const markAttendance = async (payload) => (await fetch('/api/faculty/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
-  const saveResults = async (payload) => (await fetch('/api/faculty/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
-  const studentProfile = async (sid) => (await fetch(`/api/student/${sid}/profile`)).json();
-  const studentAttendance = async (sid) => (await fetch(`/api/student/${sid}/attendance`)).json();
-  const studentResults = async (sid) => (await fetch(`/api/student/${sid}/results`)).json();
+  const addFaculty = (p) => fetcher('/api/admin/faculty', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+  const listFaculty = () => fetcher('/api/admin/faculty');
+  const addStudent = (p) => fetcher('/api/admin/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+  const listStudents = () => fetcher('/api/admin/students');
+  const addAdmin = (p) => fetcher('/api/admin/admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+  const listAdmins = () => fetcher('/api/admin/admins');
+  const markAttendance = (p) => fetcher('/api/faculty/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+  const saveResults = (p) => fetcher('/api/faculty/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+  const studentProfile = (sid) => fetcher(`/api/student/${sid}/profile`);
+  const studentAttendance = (sid) => fetcher(`/api/student/${sid}/attendance`);
+  const studentResults = (sid) => fetcher(`/api/student/${sid}/results`);
   const getStats = async () => {
-    // Mocking stats for now by fetching all lists, optimizing real app would need dedicated endpoint
     try {
       const [s, f, a] = await Promise.all([
-        fetch('/api/admin/students').then(r => r.json()).catch(() => []),
-        fetch('/api/admin/faculty').then(r => r.json()).catch(() => []),
-        fetch('/api/admin/admins').then(r => r.json()).catch(() => [])
+        fetcher('/api/admin/students'),
+        fetcher('/api/admin/faculty'),
+        fetcher('/api/admin/admins')
       ]);
       return [
-        { name: 'Students', count: s.length || 0 },
-        { name: 'Faculty', count: f.length || 0 },
-        { name: 'Admins', count: a.length || 0 }
+        { name: 'Students', count: Array.isArray(s) ? s.length : 0 },
+        { name: 'Faculty', count: Array.isArray(f) ? f.length : 0 },
+        { name: 'Admins', count: Array.isArray(a) ? a.length : 0 }
       ];
     } catch (e) { return []; }
   };
-  return { addFaculty, listFaculty, addStudent, listStudents, addAdmin, listAdmins, markAttendance, saveResults, studentProfile, studentAttendance, studentResults, getStats };
+  const getStudentStats = (sid) => fetcher(`/api/dashboard/student/${sid}/stats`);
+  const getTeacherStats = (fid) => fetcher(`/api/dashboard/teacher/${fid}/stats`);
+  const getAdminStats = () => fetcher(`/api/dashboard/admin/stats`);
+
+  return { addFaculty, listFaculty, addStudent, listStudents, addAdmin, listAdmins, markAttendance, saveResults, studentProfile, studentAttendance, studentResults, getStats, getStudentStats, getTeacherStats, getAdminStats };
 }
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError(error) { return { hasError: true }; }
+  componentDidCatch(error, errorInfo) { console.error("Uncaught error:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold mb-2">Something went wrong.</h1>
+          <button onClick={() => window.location.reload()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Reload Page</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+async function fetcher(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    const contentType = res.headers.get("content-type");
+    if (!res.ok) {
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const err = await res.json();
+        throw new Error(err.error || "Request failed");
+      }
+      throw new Error(`Request failed: ${res.status}`);
+    }
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      return res.json();
+    }
+    return {};
+  } catch (error) {
+    console.error("API Call Error:", error);
+    return { error: error.message };
+  }
+}
+
 
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
       <Toaster position="top-right" />
     </ThemeProvider>
   );
@@ -495,7 +536,7 @@ function AppContent() {
                   <div className="grid md:grid-cols-3 gap-4">
                     <SectionCard title="Use menus at left" icon={<BarChart3 className="h-5 w-5" />}>Manage faculty/students. Super Admin can add admins.</SectionCard>
                   </div>
-                  <StatsLoader api={api} />
+                  <StatsLoader api={api} role={role} id={id} />
                 </div>
               );
             }
@@ -541,7 +582,7 @@ function AppContent() {
           }
           if (role === ROLES.FACULTY) {
             if (active === "overview") {
-              return <SectionCard title="Welcome Faculty" icon={<Users className="h-5 w-5" />}>Use Mark Attendance or Results.</SectionCard>;
+              return <div className="space-y-6"><SectionCard title="Welcome Faculty" icon={<Users className="h-5 w-5" />}>Use Mark Attendance or Results.</SectionCard><StatsLoader api={api} role={role} id={id} /></div>;
             }
             if (active === "mark") {
               return <AttendanceForm onSubmit={async (payload) => { const r = await api.markAttendance(payload); if (r.error) toast.error(r.error); else toast.success("Attendance marked!"); }} listFn={api.listStudents} />;
@@ -555,7 +596,7 @@ function AppContent() {
           }
           if (role === ROLES.STUDENT) {
             if (active === "overview") {
-              return <SectionCard title="Welcome" icon={<User className="h-5 w-5" />}>Use Profile / Attendance / Results</SectionCard>;
+              return <div className="space-y-6"><SectionCard title="Welcome" icon={<User className="h-5 w-5" />}>Use Profile / Attendance / Results</SectionCard><StatsLoader api={api} role={role} id={id} /></div>;
             }
             if (active === "profile") return <StudentProfile sid={id} fetcher={api.studentProfile} />;
             if (active === "attendance") return <StudentAttendance sid={id} fetcher={api.studentAttendance} />;
@@ -731,8 +772,24 @@ function StudentResults({ sid, fetcher }) {
   );
 }
 
-function StatsLoader({ api }) {
-  const [data, setData] = useState([]);
-  React.useEffect(() => { api.getStats().then(setData); }, [api]);
-  return <OverviewGraph data={data} />;
+function StatsLoader({ api, role, id }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    setLoading(true);
+    let p;
+    if (role === "student") p = api.getStudentStats(id);
+    else if (role === "faculty") p = api.getTeacherStats(id);
+    else if (role === "admin" || role === "super_admin") p = api.getAdminStats();
+
+    if (p) p.then(d => { setData(d); setLoading(false); }).catch(() => setLoading(false));
+  }, [api, role, id]);
+
+  if (loading) return <div className="p-4 text-center text-slate-500">Loading stats...</div>;
+  if (!data || data.error) return <div className="p-4 text-center text-red-500">Error loading stats: {data?.error || "Unknown"}</div>;
+
+  if (role === "student") return <StudentDashboard stats={data} />;
+  if (role === "faculty") return <TeacherDashboard stats={data} />;
+  return <AdminDashboard stats={data} />;
 }
