@@ -156,7 +156,7 @@ const Input = ({ label, value, onChange, placeholder, disabled, type = "text" })
       value={value}
       onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       placeholder={placeholder}
-      className={`w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-500 ${disabled ? "bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-500" : "border-slate-300"}`}
+      className={`w-full rounded-xl border px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-500 ${disabled ? "bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-500" : "border-slate-300"}`}
     />
   </label>
 );
