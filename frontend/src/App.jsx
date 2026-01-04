@@ -373,7 +373,7 @@ const DataTable = ({ items, cols, empty }) => {
         <Input placeholder="Search..." value={search} onChange={e => { setSearch(e); setPage(1); }} />
         <div className="text-sm text-slate-500 dark:text-slate-400">Total: {filtered.length}</div>
       </div>
-      <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+      <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800 dark:text-slate-200">
             <tr>
@@ -655,7 +655,7 @@ function Loader({ listFn, cols, empty }) {
 
   if (!items) {
     return (
-      <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+      <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800"><tr>{cols.map(c => <th key={c} className="p-3"><Skeleton className="h-4 w-20" /></th>)}</tr></thead>
           <tbody>
@@ -681,7 +681,7 @@ function AttendanceForm({ onSubmit, listFn }) {
       <Input label="Subject" value={subject} onChange={setSubject} />
       <Input label="Date (YYYY-MM-DD)" value={date} onChange={setDate} />
     </div>
-    <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+    <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 dark:bg-slate-800 dark:text-slate-200"><tr><th className="p-3 text-left">Student</th><th className="p-3 text-left">ID</th><th className="p-3 text-left">Status</th></tr></thead>
         <tbody>
@@ -709,7 +709,7 @@ function ResultsForm({ onSubmit, listFn }) {
       <Input label="Subject" value={subject} onChange={setSubject} />
       <Input label="Exam Type" value={examType} onChange={setExamType} />
     </div>
-    <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+    <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 dark:bg-slate-800 dark:text-slate-200"><tr><th className="p-3 text-left">Student</th><th className="p-3 text-left">ID</th><th className="p-3 text-left">Marks</th></tr></thead>
         <tbody>
@@ -744,7 +744,7 @@ function StudentAttendance({ sid, fetcher }) {
   const [rows, setRows] = useState([]);
   React.useEffect(() => { fetcher(sid).then(setRows).catch(() => setRows([])); }, [sid]);
   return (
-    <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+    <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 dark:bg-slate-800 dark:text-slate-200"><tr><th className="p-3 text-left">Date</th><th className="p-3 text-left">Subject</th><th className="p-3 text-left">Status</th></tr></thead>
         <tbody>
@@ -760,7 +760,7 @@ function StudentResults({ sid, fetcher }) {
   const [rows, setRows] = useState([]);
   React.useEffect(() => { fetcher(sid).then(setRows).catch(() => setRows([])); }, [sid]);
   return (
-    <div className="rounded-xl border overflow-hidden dark:border-slate-800">
+    <div className="rounded-xl border overflow-x-auto dark:border-slate-800">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 dark:bg-slate-800 dark:text-slate-200"><tr><th className="p-3 text-left">Subject</th><th className="p-3 text-left">Exam</th><th className="p-3 text-left">Marks</th></tr></thead>
         <tbody>
