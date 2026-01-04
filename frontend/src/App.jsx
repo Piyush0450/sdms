@@ -18,7 +18,7 @@ const ROLES = {
 };
 
 const Container = ({ children }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+  <div className="min-h-screen min-w-[100vw] w-fit sm:w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
     {children}
   </div>
 );
