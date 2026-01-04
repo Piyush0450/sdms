@@ -5,7 +5,7 @@
 # Proxy /api requests to the Render Backend
 [[redirects]]
   from = "/api/*"
-  to = "https://CHANGE_ME_TO_YOUR_RENDER_URL.onrender.com/api/:splat"
+  to = "https://sdms-backend-1f01.onrender.com/api/:splat"
   status = 200
   force = true
 

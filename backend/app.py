@@ -10,7 +10,18 @@ from routes.dashboard_routes import bp as dashboard_bp
 
 def create_app():
     app = Flask(__name__, static_folder=None)
-    CORS(app)
+    # CORS(app) # Allow all origins by default (simpler for dev)
+    CORS(app, origins=[
+        "http://localhost:5173",
+        "https://sdmsapp.netlify.app"
+    ])
+
+    @app.route("/", methods=["GET"])
+    def root():
+        return {
+            "ok": True,
+            "message": "Backend running successfully"
+        }
 
     # Create tables
     Base.metadata.create_all(bind=engine)
