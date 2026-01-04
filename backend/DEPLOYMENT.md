@@ -20,13 +20,20 @@ This guide explains how to deploy the backend of the SDMS application using **Re
     *   **Root Directory**: `sdms-fullstack/backend` (Important! This points Render to the correct folder).
     *   **Runtime**: Python 3.
     *   **Build Command**: `pip install -r requirements.txt`
-    *   **Start Command**: `gunicorn "app:create_app()"`
+    *   **Start Command**: `python -m scripts.reset_db_full && gunicorn "app:create_app()"`
+        *   *Note*: This command resets and seeds the database every time the server starts. This is useful for this demo since the filesystem is ephemeral.
 5.  **Environment Variables** (Optional but Recommended):
     *   Go to the "Environment" tab (or "Advanced").
     *   Add `SECRET_KEY` with a random strong string.
     *   Add `PYTHON_VERSION` with value `3.10.0` (or your preferred version).
 6.  **Deploy**:
     *   Click **Create Web Service**.
+
+## Default Credentials
+After deployment, use these credentials to log in:
+- **Admin**: `admin` / `01/01/2000`
+- **Faculty**: `F_001` / `01/01/1980`
+- **Student**: `S_001` / `01/01/2005`
 
 ## Important Notes
 
