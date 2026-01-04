@@ -559,7 +559,7 @@ function AppContent() {
                     <FacultyForm onSubmit={async (payload) => { const r = await api.addFaculty(payload); if (r.error) toast.error(r.error); else toast.success("Faculty added!"); }} />
                   </SectionCard>
                   <SectionCard title="Faculty List" icon={<Users className="h-5 w-5" />}>
-                    <Loader listFn={api.listFaculty} cols={["faculty_id", "name", "department", "subject"]} empty="No faculty yet" />
+                    <Loader listFn={api.listFaculty} cols={["faculty_id", "name", "department", "subject", "dob"]} empty="No faculty yet" />
                   </SectionCard>
                 </div>
               );
@@ -571,7 +571,7 @@ function AppContent() {
                     <StudentForm onSubmit={async (payload) => { const r = await api.addStudent(payload); if (r.error) toast.error(r.error); else toast.success("Student added!"); }} />
                   </SectionCard>
                   <SectionCard title="Students" icon={<GraduationCap className="h-5 w-5" />}>
-                    <Loader listFn={api.listStudents} cols={["student_id", "name", "roll_no", "department", "semester"]} empty="No students yet" />
+                    <Loader listFn={api.listStudents} cols={["student_id", "name", "roll_no", "department", "semester", "dob"]} empty="No students yet" />
                   </SectionCard>
                 </div>
               );

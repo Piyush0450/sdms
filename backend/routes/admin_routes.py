@@ -11,7 +11,7 @@ def list_faculty():
     try:
         with SessionLocal() as db:
             rows = db.scalars(select(Faculty)).all()
-            return jsonify([{'faculty_id': r.faculty_id, 'name': r.name, 'department': r.department, 'subject': r.subject} for r in rows])
+            return jsonify([{'faculty_id': r.faculty_id, 'name': r.name, 'department': r.department, 'subject': r.subject, 'dob': r.dob} for r in rows])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -34,7 +34,7 @@ def list_students():
     try:
         with SessionLocal() as db:
             rows = db.scalars(select(Student)).all()
-            return jsonify([{'student_id': r.student_id, 'name': r.name, 'roll_no': r.roll_no, 'department': r.department, 'semester': r.semester} for r in rows])
+            return jsonify([{'student_id': r.student_id, 'name': r.name, 'roll_no': r.roll_no, 'department': r.department, 'semester': r.semester, 'dob': r.dob} for r in rows])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
