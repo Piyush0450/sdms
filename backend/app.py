@@ -1,12 +1,13 @@
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from database.connection import Base, engine
-from models import user, academic  # noqa: F401
+from models import user, academic, department, activity, finance, library  # noqa: F401
 from routes.auth_routes import bp as auth_bp
 from routes.admin_routes import bp as admin_bp
 from routes.faculty_routes import bp as faculty_bp
 from routes.student_routes import bp as student_bp
 from routes.dashboard_routes import bp as dashboard_bp
+from routes.librarian_routes import bp as librarian_bp
 
 def create_app():
     app = Flask(__name__, static_folder=None)
@@ -31,6 +32,7 @@ def create_app():
     app.register_blueprint(faculty_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(librarian_bp)
 
     @app.get('/api/health')
     def health():

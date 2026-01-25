@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import select
 from database.connection import SessionLocal
 from models.user import Student
-from models.academic import Attendance, Result, Subject
+from models.academic import Subject
+from models.activity import Attendance, Mark as Result
 
 bp = Blueprint('faculty', __name__, url_prefix='/api/faculty')
 
@@ -26,20 +27,20 @@ def mark_attendance():
                 db.flush()
 
             for sid, status in status_map.items():
-                # Resolve Student PK
-                stu_obj = db.scalars(select(Student).where(Student.student_id == sid)).first()
+                # Resolve Student PK by UID
+                stu_obj = db.scalars(select(Student).where(Student.student_uid == sid)).first()
                 if stu_obj:
                     # Check existing
                     existing = db.scalars(select(Attendance).where(
-                        Attendance.student_id == stu_obj.id,
-                        Attendance.subject_id == sub_obj.id,
-                        Attendance.date == date
+                        Attendance.student_id == stu_obj.student_id,
+                        Attendance.subject_id == sub_obj.subject_id,
+                        Attendance.attendance_date == date
                     )).first()
                     
                     if existing:
                         existing.status = status
                     else:
-                        db.add(Attendance(student_id=stu_obj.id, subject_id=sub_obj.id, date=date, status=status))
+                        db.add(Attendance(student_id=stu_obj.student_id, subject_id=sub_obj.subject_id, attendance_date=date, status=status))
             db.commit()
         return jsonify({'ok': True})
     except Exception as e:
@@ -65,8 +66,8 @@ def save_results():
                 db.flush()
 
             for sid, marks in marks_map.items():
-                # Resolve Student
-                stu_obj = db.scalars(select(Student).where(Student.student_id == sid)).first()
+                # Resolve Student by UID
+                stu_obj = db.scalars(select(Student).where(Student.student_uid == sid)).first()
                 if stu_obj:
                     # Assuming exam_type is passed, marks is string in payload but Float in DB
                     try:
@@ -76,15 +77,15 @@ def save_results():
                     
                     # Check existing result
                     existing = db.scalars(select(Result).where(
-                        Result.student_id == stu_obj.id,
-                        Result.subject_id == sub_obj.id,
+                        Result.student_id == stu_obj.student_id,
+                        Result.subject_id == sub_obj.subject_id,
                         Result.exam_type == exam_type
                     )).first()
 
                     if existing:
                         existing.marks_obtained = m_val
                     else:
-                        db.add(Result(student_id=stu_obj.id, subject_id=sub_obj.id, exam_type=exam_type, marks_obtained=m_val, total_marks=100.0))
+                        db.add(Result(student_id=stu_obj.student_id, subject_id=sub_obj.subject_id, exam_type=exam_type, marks_obtained=m_val, max_marks=100.0))
             db.commit()
         return jsonify({'ok': True})
     except Exception as e:

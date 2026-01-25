@@ -2,16 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  touch-action: manipulation;
-}
-
 @layer base {
   body {
-    @apply bg-slate-50 dark:bg-slate-950;
+    @apply m-0 p-0 font-sans antialiased text-slate-900 bg-slate-50 dark:bg-slate-950 dark:text-slate-100;
   }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl dark:bg-slate-900/70 dark:border-slate-800/50;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm hover:shadow-md transition-all duration-300 dark:bg-slate-900/80 dark:border-slate-800/50;
+}
+
+.glass-input {
+  @apply bg-white/50 border border-slate-200/60 focus:bg-white/80 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 dark:bg-slate-950/50 dark:border-slate-800 dark:focus:bg-slate-900/80;
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Gradient Text */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400;
 }

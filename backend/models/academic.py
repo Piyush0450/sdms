@@ -1,69 +1,70 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float
+
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Time
 from sqlalchemy.orm import relationship
 from database.connection import Base
+from datetime import datetime
 
 class Class(Base):
-    __tablename__ = "class"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    grade = Column(String(20), nullable=False)  # e.g., "10", "Grade 5"
-    section = Column(String(10), nullable=False)  # e.g., "A", "B"
-    class_teacher_id = Column(Integer, ForeignKey("faculty.id"), nullable=True)
+    __tablename__ = "classes"
+    
+    class_id = Column(Integer, primary_key=True, autoincrement=True)
+    class_name = Column(String(20), nullable=False)
+    academic_year = Column(Integer, nullable=True) # Year type in MySQL, Integer in SQLite is fine
+    class_teacher_id = Column(Integer, ForeignKey("faculty.faculty_id"), nullable=True)
+    room_number = Column(String(10), nullable=True)
+    strength = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
+    class_teacher = relationship("Faculty", back_populates="classes_managed")
     students = relationship("Student", back_populates="assigned_class")
+    timetable_entries = relationship("Timetable", back_populates="class_")
     allocations = relationship("SubjectAllocation", back_populates="class_")
 
+
 class Subject(Base):
-    __tablename__ = "subject"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    code = Column(String(20), unique=True, nullable=False)
+    __tablename__ = "subjects"
+    
+    subject_id = Column(Integer, primary_key=True, autoincrement=True)
+    subject_name = Column(String(50), nullable=False)
+    subject_code = Column(String(10), unique=True, nullable=True)
+    department_id = Column(Integer, ForeignKey("departments.department_id"), nullable=True)
+    credits = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
+    department = relationship("Department", back_populates="subjects")
+    timetable_entries = relationship("Timetable", back_populates="subject")
     allocations = relationship("SubjectAllocation", back_populates="subject")
 
 class SubjectAllocation(Base):
-    """Mapping table for Class + Subject + Teacher"""
-    __tablename__ = "subject_allocation"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    class_id = Column(Integer, ForeignKey("class.id"), nullable=False)
-    subject_id = Column(Integer, ForeignKey("subject.id"), nullable=False)
-    faculty_id = Column(Integer, ForeignKey("faculty.id"), nullable=False)
+    __tablename__ = "subject_allocations"
+
+    allocation_id = Column(Integer, primary_key=True, autoincrement=True)
+    class_id = Column(Integer, ForeignKey("classes.class_id"), nullable=False)
+    subject_id = Column(Integer, ForeignKey("subjects.subject_id"), nullable=False)
+    teacher_id = Column(Integer, ForeignKey("faculty.faculty_id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     class_ = relationship("Class", back_populates="allocations")
     subject = relationship("Subject", back_populates="allocations")
-    faculty = relationship("Faculty", back_populates="allocations")
+    teacher = relationship("Faculty", back_populates="allocations")
+class Timetable(Base):
+    __tablename__ = "timetable"
+    
+    timetable_id = Column(Integer, primary_key=True, autoincrement=True)
+    class_id = Column(Integer, ForeignKey("classes.class_id"), nullable=False)
+    subject_id = Column(Integer, ForeignKey("subjects.subject_id"), nullable=False)
+    # Teacher is derived from SubjectAllocation(class, subject) -> teacher
+    day_of_week = Column(Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), nullable=True)
+    period_number = Column(Integer, nullable=True)
+    start_time = Column(Time, nullable=True) # Str in sqlite
+    end_time = Column(Time, nullable=True)
+    room_number = Column(String(10), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-class Attendance(Base):
-    __tablename__ = "attendance"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey("student.id"), index=True, nullable=False)
-    # Linking to allocation to know which subject/class context (optional, but good for specific subject attendance)
-    # OR per-day attendance (school level).
-    # Requirement: "Teacher: Mark... attendance (daily, weekly)". Usually daily is for class, subject-wise is for college.
-    # User Request: "Mark student attendance (daily)". "Subject-wise average marks" suggests subject context exists.
-    # Let's support Subject-wise attendance or Daily.
-    # For a general school dash, usually it's "Morning/Daily Attendance". 
-    # But "Subject-wise marks" suggests detailed subject handling.
-    # I'll stick to a simple "Date + Status" linked to Student. If subject-wise is needed, we add subject_id.
-    # The existing model had `subject` column. I will keep `subject_id` to be safe/flexible.
-    subject_id = Column(Integer, ForeignKey("subject.id"), nullable=True) 
-    date = Column(String(10), nullable=False)  # YYYY-MM-DD
-    status = Column(String(10), nullable=False)  # Present, Absent, Late
+    # Relationships
+    class_ = relationship("Class", back_populates="timetable_entries")
+    subject = relationship("Subject", back_populates="timetable_entries")
 
-    student = relationship("Student", back_populates="attendance_records")
-    subject = relationship("Subject")
-
-class Result(Base):
-    __tablename__ = "result"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey("student.id"), index=True, nullable=False)
-    subject_id = Column(Integer, ForeignKey("subject.id"), nullable=False)
-    exam_type = Column(String(50), nullable=False) # Midterm, Final
-    marks_obtained = Column(Float, nullable=False)
-    total_marks = Column(Float, nullable=False)
-    date = Column(String(10), nullable=True)
-
-    student = relationship("Student", back_populates="results")
-    subject = relationship("Subject")
