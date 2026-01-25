@@ -198,6 +198,9 @@ const PrimaryBtn = ({ children, onClick, type = "button", className = "" }) => (
 const AuthPanel = ({ onLoggedIn, onHomeClick }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState("google"); // "google" or "credentials"
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleGoogleLogin = async () => {
     setError("");
@@ -232,6 +235,36 @@ const AuthPanel = ({ onLoggedIn, onHomeClick }) => {
     }
   };
 
+  const handleCredentialsLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        toast.success(`Welcome back!`);
+        onLoggedIn({ role: data.role, id: data.id, email: data.email });
+      } else {
+        setError(data.error || "Invalid credentials");
+        toast.error(data.error || "Login Failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Login failed. Please try again.");
+      toast.error("Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Container>
       <Navbar onLoginClick={() => { }} onHomeClick={onHomeClick} />
@@ -260,25 +293,94 @@ const AuthPanel = ({ onLoggedIn, onHomeClick }) => {
               </motion.div>
             )}
 
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full relative flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 font-semibold py-3.5 px-4 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group disabled:opacity-70 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-750"
-            >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-slate-400 border-t-indigo-600 rounded-full animate-spin"></span>
-              ) : (
-                <>
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
-                  <span>Continue with Google</span>
-                </>
-              )}
-            </button>
+            {/* Login Mode Tabs */}
+            <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+              <button
+                onClick={() => setLoginMode("google")}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${loginMode === "google"
+                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+              >
+                Google
+              </button>
+              <button
+                onClick={() => setLoginMode("credentials")}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${loginMode === "credentials"
+                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+              >
+                Username
+              </button>
+            </div>
 
-            <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
-              Protected by Firebase Authentication. <br />
-              Only registered Emails can access.
-            </p>
+            {loginMode === "google" ? (
+              <>
+                <button
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full relative flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 font-semibold py-3.5 px-4 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group disabled:opacity-70 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-750"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-slate-400 border-t-indigo-600 rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
+                      <span>Continue with Google</span>
+                    </>
+                  )}
+                </button>
+
+                <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
+                  Protected by Firebase Authentication. <br />
+                  Only registered Emails can access.
+                </p>
+              </>
+            ) : (
+              <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">
+                    Username / ID
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="e.g., piyush_admin, F_001, S_001"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-slate-100"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">
+                    Password (Date of Birth)
+                  </label>
+                  <input
+                    type="text"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="DD/MM/YYYY or YYYY-MM-DD"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-slate-100"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-indigo-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-70"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span>
+                  ) : (
+                    "Sign In"
+                  )}
+                </button>
+                <p className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
+                  Use your username and date of birth as password
+                </p>
+              </form>
+            )}
 
             {/* DEV LOGIN BYPASS */}
             <div className="mt-4 border-t pt-4 border-slate-100 dark:border-slate-800">
@@ -826,10 +928,10 @@ function BookIssuesTable() {
                       <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{new Date(issue.due_date).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${issue.status === 'Returned'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                            : isOverdue
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                          : isOverdue
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
                           }`}>
                           {issue.status === 'Returned' ? 'Returned' : isOverdue ? 'Overdue' : 'Issued'}
                         </span>
