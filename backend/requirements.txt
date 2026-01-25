@@ -3,3 +3,4 @@ Flask-CORS==4.0.1
 SQLAlchemy==2.0.31
 python-dotenv==1.0.1
 gunicorn==22.0.0
+firebase-admin
